@@ -1,0 +1,157 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+mydata1=read.csv("https://raw.githubusercontent.com/jwhite00/Sound-Transit-Data/master/Data/Sound%20Transit%20Phase1Data2017_04_14EgressAccessRevised.csv")
+library(ggplot2)
+library(scales)
+library(summarytools)
+```
+
+
+```{r}
+names(mydata1)
+
+```
+
+
+#univariate
+
+```{r}
+#variable=origin_type_clean
+absoluteT=table(mydata1$origin_type_clean,exclude = '#NULL!')
+ToPlot=prop.table(absoluteT)
+ToPlot=ToPlot*100
+plotLabels=paste0(round(ToPlot,2),'%') 
+paletteHereNew=c('gray') 
+tableFreq=as.data.frame(ToPlot)
+names(tableFreq)=c("origin_type_clean","pct")
+tableFreq0 = tableFreq[order(-tableFreq$pct),]
+
+
+```
+
+
+```{r}
+#Graph: 
+titleText='Where are Link Light Rail Riders Coming From?'
+sourceText='Source: Sound Transit 2015 Onboard Survey Data'
+
+#base GGPLOT2 starts with a "base", telling WHAT VARIABLES TO PLOT
+base= ggplot(data = tableFreq0, 
+             aes(x = reorder(origin_type_clean,pct),
+                 y = pct)) 
+plot1 = base + geom_bar(fill ="gray",
+                        stat = 'identity') 
+plot2 = plot1 + theme(panel.background = element_rect(fill = "white",
+                                                    colour = "grey50"),
+                    plot.caption = element_text(hjust = 0), 
+                    plot.title = element_text(hjust = 0.5))
+plot3 = plot2 + labs(title=titleText, 
+                     x ='Origin Location', 
+                     y = '% of Riders',
+                     caption = sourceText)
+plot4 = plot3 + scale_y_continuous(breaks=c(0,10, 20,30,40,50),
+                                 limits = c(0, 50), 
+                                 labels=scales::unit_format(suffix = '%')) 
+plot5 = plot4 + geom_text(aes(y = pct , 
+                            label = paste0(round(pct,2), '%')),
+                        hjust=-.1,
+                        size = 3)
+plot6=plot5 + coord_flip()
+plot6
+
+```
+
+
+
+
+#bivariate
+
+
+```{r linkdata}
+library(ggplot2)
+library(magrittr)
+library(scales)
+library(dplyr)
+
+linkdata <- read.csv("https://raw.githubusercontent.com/jwhite00/Group-Project-Data-Vis/master/Data/newLinkData.csv", stringsAsFactors=FALSE)
+```
+
+**Cleaning the data and creating the proportion table**
+
+```{r linkdataclean}
+linkdata_clean <- linkdata %>%
+  filter(faretype != "#NULL!") %>%
+  filter(purpose != "#NULL!")
+
+linkincomefare=table(linkdata_clean$faretype, linkdata_clean$purpose)%>%
+         prop.table(margin = 2)%>%   # 2 is % by column
+         "*"(100)%>%
+         round(3)
+```
+
+**Creating the dataframe for building the plot**
+
+```{r dflink}
+dflink=as.data.frame(linkincomefare)
+names(dflink)=c('Fairtype','Purpose','Percent')
+dflink_new = dflink %>% 
+  mutate(Fairtype = recode(Fairtype, 'FALSE' = "Other")) #recoding FALSE to Other, meaning other type of fare
+```
+
+**Building the plot**
+
+```{r barplotfarepurpose}
+base  = ggplot(dflink_new, aes(x = reorder(Fairtype, Percent), y = Percent))
+bars1 = base + geom_bar(stat = "identity")
+bars2 = bars1 + facet_wrap( ~ Purpose ,nrow = 1)
+bars3 = bars2 + coord_flip() + 
+                scale_y_continuous(limits=c(0,80),
+                                  labels=scales::unit_format(suffix = '%'))
+bars4 = bars3 + geom_text(aes(y = Percent,
+                                  label = paste0(round(Percent,1), '%')), 
+                                  hjust= -0.15, 
+                                  size = 2.5)
+bars5 = bars4 + labs(title='What fare type is the most common given different purpose of trips?',
+                     x ='Fare type',
+                     caption = 'Source: Sound Transit 2015 Onboard Survey Data')
+bars6 = bars5 + theme(axis.text.y = element_text(size=8, angle = 30),
+                      axis.text.x = element_text(size=7),
+                      plot.title = element_text(size = 12, hjust = 0.5),
+                      plot.caption = element_text(hjust = 1, vjust = -1.2),
+                      axis.title.y = element_text(size = 11, hjust = 0.5, vjust = 1.75),
+                      axis.title.x = element_text(size = 11, hjust = 0.5, vjust = -1.25))
+bars6
+```
+```{r}
+#Graph: 
+
+
+```
+
+
+
+
+
+#Multivariate
+
+```{r}
+#Graph: 
+
+
+```
+
+```{r}
+#Graph: 
+
+
+```
+
+
